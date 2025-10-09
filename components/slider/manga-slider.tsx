@@ -3,7 +3,7 @@ import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity, Sty
 import Swiper from 'react-native-swiper'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getNewManga } from '@/api/manga/get-latest-updated-manga'
+import { getNewManga } from '@/api/mangadex/manga/get-latest-updated-manga'
 import { contentRatingColors } from '@/utils/static'
 import { MangaStatus, OriginalLanguage, ContentRating } from '@/utils/enums'
 

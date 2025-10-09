@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, FlatList, StyleSheet } from 'react-native'
 import MangaItem from '@/components/manga/manga-items'
-import { Manga } from '@/api/paginate'
+import { Manga } from '@/api/mangadex/paginate'
 
 interface MangaGridProps {
   mangas: Manga[]

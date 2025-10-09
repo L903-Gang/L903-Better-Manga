@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Manga } from '@/api/paginate'
+import { Manga } from '@/api/mangadex/paginate'
 
 interface MangaCardProps {
   manga: Manga

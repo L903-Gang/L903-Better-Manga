@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getTag, Tag } from '@/api/tag/get-tag'
+import { getTag, Tag } from '@/api/mangadex/tag/get-tag'
 import { ContentRating } from '@/utils/enums'
 
 type Props = {

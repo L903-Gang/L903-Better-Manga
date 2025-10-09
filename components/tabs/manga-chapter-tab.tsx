@@ -7,9 +7,9 @@ import Loading from '../status/loading'
 import Error from '../status/error'
 import { getLanguageName } from '@/utils/enums'
 import { formatDate } from '@/utils/format'
-import { DataResponse } from '@/api/paginate'
+import { DataResponse } from '@/api/mangadex/paginate'
 import { request } from '@/utils/request'
-import { Chapter } from '@/api/chapter/get-chapter-by-id'
+import { Chapter } from '@/api/mangadex/chapter/get-chapter-by-id'
 
 interface MangaChaptersListProps {
   mangaId: string

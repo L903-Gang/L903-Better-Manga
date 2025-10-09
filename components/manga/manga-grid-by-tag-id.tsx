@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import MangaItem from '@/components/manga/manga-items'
-import { getTopMangaByTagId } from '@/api/manga/get-manga-by-tag-id'
+import { getTopMangaByTagId } from '@/api/mangadex/manga/get-manga-by-tag-id'
 import { useQuery } from '@tanstack/react-query'
 import Loading from '../status/loading'
 import Error from '../status/error'

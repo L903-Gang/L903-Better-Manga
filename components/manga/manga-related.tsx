@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react'
 import { View, Text, TouchableOpacity, StyleSheet, ToastAndroid, Platform, ActivityIndicator } from 'react-native'
 import { useQueries } from '@tanstack/react-query'
-import { getMangaById } from '@/api/manga/get-detail-manga-by-id'
-import { Manga } from '@/api/paginate'
+import { getMangaById } from '@/api/mangadex/manga/get-detail-manga-by-id'
+import { Manga } from '@/api/mangadex/paginate'
 import { Picker } from '@react-native-picker/picker' // chọn filter
 import Error from '../status/error'
 import MangaGrid from './manga-grid'

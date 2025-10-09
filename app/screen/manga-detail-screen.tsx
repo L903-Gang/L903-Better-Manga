@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { ScrollView, View, Text, Image, TouchableOpacity } from 'react-native'
-import { Manga } from '@/api/paginate'
+import { Manga } from '@/api/mangadex/paginate'
 // import { getAuthorById } from '@/api/Author/getAuthorById';
-import { MangaStatus, OriginalLanguage, ContentRating } from '@/utils/enums'
+import { MangaStatus, OriginalLanguage } from '@/utils/enums'
 import MangaChaptersList from '@/components/tabs/manga-chapter-tab'
 import RelatedManga from '@/components/manga/manga-related'
 

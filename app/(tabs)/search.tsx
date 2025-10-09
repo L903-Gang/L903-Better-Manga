@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo } from 'react'
 import { View, TextInput, StyleSheet, StatusBar, FlatList, Text, ActivityIndicator, Image } from 'react-native'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { request } from '@/utils/request'
-import { Manga, DataResponse } from '@/api/paginate'
+import { Manga, DataResponse } from '@/api/mangadex/paginate'
 import MangaItem from '@/components/manga/manga-items'
 
 export default function SearchScreen() {
@@ -106,7 +106,7 @@ export default function SearchScreen() {
     if (!isLoading && mangas.length === 0 && submittedSearchText !== '') {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Không tìm thấy manga nào với từ khóa "{submittedSearchText}"</Text>
+          <Text style={styles.emptyText}>Không tìm thấy manga nào với từ khóa {submittedSearchText}</Text>
         </View>
       )
     }
@@ -145,7 +145,7 @@ export default function SearchScreen() {
         {/* Hiển thị số kết quả nếu có */}
         {submittedSearchText && totalCount > 0 && (
           <Text style={styles.resultCount}>
-            Tìm thấy {totalCount} kết quả cho "{submittedSearchText}"
+            Tìm thấy {totalCount} kết quả cho {submittedSearchText}
           </Text>
         )}
 

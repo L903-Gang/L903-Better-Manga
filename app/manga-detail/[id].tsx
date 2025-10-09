@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getMangaById } from '@/api/manga/get-detail-manga-by-id'
+import { getMangaById } from '@/api/mangadex/manga/get-detail-manga-by-id'
 import MangaDetailScreen from '../screen/manga-detail-screen'
 import Loading from '@/components/status/loading'
 import Error from '@/components/status/error'

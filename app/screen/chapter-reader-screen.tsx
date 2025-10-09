@@ -14,9 +14,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import Modal from 'react-native-modal'
 import ImageViewer from 'react-native-image-zoom-viewer'
 import ChapterNavigator from '@/components/chapter/chapter-navigator'
-import { ChapterDetail } from '@/api/chapter/get-detail-chapter-by-id'
+import { ChapterDetail } from '@/api/mangadex/chapter/get-detail-chapter-by-id'
 
-const { width, height } = Dimensions.get('window')
+const { width } = Dimensions.get('window')
 
 interface ChapterReaderScreenProps {
   chapterDetail: ChapterDetail

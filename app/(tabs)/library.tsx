@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getTag, Tag } from '@/api/tag/get-tag'
+import { getTag, Tag } from '@/api/mangadex/tag/get-tag'
 import { router } from 'expo-router'
 import Loading from '@/components/status/loading'
 import Error from '@/components/status/error'
