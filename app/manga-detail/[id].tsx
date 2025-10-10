@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, StyleSheet } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getMangaById } from '@/api/mangadex/manga/get-detail-manga-by-id'
+import { getDetailManga } from '@/api/otruyen/get-detail-manga'
 import MangaDetailScreen from '../screen/manga-detail-screen'
 import Loading from '@/components/status/loading'
 import Error from '@/components/status/error'
@@ -14,11 +14,11 @@ export default function MangaDetailPageWrapper() {
 
 function MangaDetailContent() {
   const { id } = useLocalSearchParams()
-  const mangaID = String(id)
+  const slug_manga = String(id)
 
   const backgroundColor = '#0f172a'
 
-  const { data: manga, isFetching, isError } = useQuery(getMangaById({ id: mangaID }))
+  const { data: manga, isFetching, isError } = useQuery(getDetailManga({ slug: slug_manga }))
 
   if (isFetching) {
     return (

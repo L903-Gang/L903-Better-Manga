@@ -3,9 +3,8 @@ import { View, Text, Image, Dimensions, ActivityIndicator, TouchableOpacity, Sty
 import Swiper from 'react-native-swiper'
 import { useRouter } from 'expo-router'
 import { useQuery } from '@tanstack/react-query'
-import { getNewManga } from '@/api/mangadex/manga/get-latest-updated-manga'
-import { contentRatingColors } from '@/utils/static'
-import { MangaStatus, OriginalLanguage, ContentRating } from '@/utils/enums'
+import { MangaStatus } from '@/utils/enums'
+import { getListByType } from '@/api/otruyen/list/get-list-by-type'
 
 const { width } = Dimensions.get('window')
 
@@ -13,39 +12,33 @@ interface Props {
   id: string
 }
 
-const SlideMangaCardFullWidth: React.FC<Props> = ({ id }) => {
+const SlideMangaCardFullWidth: React.FC<Props> = () => {
   const router = useRouter()
   const [isLoaded, setIsLoaded] = useState(false)
 
-  const { data: newManga, isLoading, isError } = useQuery(getNewManga({ limit: 10 }))
+  const { data: newManga, isLoading, isError } = useQuery(getListByType({ type: 'truyen-moi', page: 1 }))
 
   if (isLoading) return <ActivityIndicator size='large' color='#999' style={{ marginTop: 50 }} />
-  if (isError) return <Text style={{ marginTop: 50, textAlign: 'center' }}>Lỗi rồi</Text>
+  if (isError || !newManga) return <Text style={{ marginTop: 50, textAlign: 'center' }}>Lỗi rồi</Text>
 
   return (
     <View style={{ width, height: 450, paddingVertical: 3 }}>
       <Swiper autoplay autoplayTimeout={3.5} showsPagination={false} loop>
-        {newManga?.data.map(manga => {
-          const attr = manga.attributes
-          const title = attr.altTitles.find(t => t.vi)?.vi ?? attr.title.en ?? attr.altTitles.find(t => t.en)?.en
-          //   const altTitle = attr.altTitles.find(t => t.en)?.en || attr.altTitles.find(t => t.ja)?.ja;
-          const year = attr.year || 'Không rõ'
-          const status = MangaStatus[attr.status as keyof typeof MangaStatus] || 'Không rõ'
-          const originalLang = OriginalLanguage[attr.originalLanguage as keyof typeof OriginalLanguage] || 'Không rõ'
-          const rating = attr.contentRating as keyof typeof ContentRating
-          const coverArt = manga.relationships.find(rel => rel.type === 'cover_art')
-          const coverImageUrl = coverArt?.attributes?.fileName
-            ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArt.attributes.fileName}`
-            : ''
+        {newManga?.data.items.map(manga => {
+          const title = manga.name
+          const altTitle = manga.origin_name
+          const status = MangaStatus[manga.status as keyof typeof MangaStatus] || 'Không rõ'
+          const coverImageUrl = newManga.data.APP_DOMAIN_CDN_IMAGE + '/uploads/comics/' + manga.thumb_url
+          const categoryNames = manga.category.map(c => c.name).join(', ')
 
           const handleClick = () => {
-            if (manga.id.trim()) {
-              router.push(`/manga-detail/${manga.id}`)
+            if (manga.slug.trim()) {
+              router.push(`/manga-detail/${manga.slug}`)
             }
           }
 
           return (
-            <TouchableOpacity key={manga.id} onPress={handleClick} activeOpacity={0.8} style={{ flex: 1 }}>
+            <TouchableOpacity key={manga.slug} onPress={handleClick} activeOpacity={0.8} style={{ flex: 1 }}>
               {coverImageUrl ? (
                 <Image
                   source={{ uri: coverImageUrl, cache: 'force-cache' }}
@@ -70,16 +63,9 @@ const SlideMangaCardFullWidth: React.FC<Props> = ({ id }) => {
                     <Text style={styles.title} numberOfLines={2}>
                       {title}
                     </Text>
-                    {/* {altTitle && <Text style={styles.altTitle}>{altTitle}</Text>} */}
+                    {altTitle && <Text style={styles.altTitle}>{altTitle}</Text>}
                     <Text style={styles.infoText}>Tình trạng: {status}</Text>
-                    <Text style={styles.infoText}>Năm phát hành: {year}</Text>
-                    <Text style={styles.infoText}>Ngôn ngữ gốc: {originalLang}</Text>
-                    <Text style={styles.infoText}>
-                      Độ tuổi:{' '}
-                      <Text style={[styles.rating, { backgroundColor: contentRatingColors[rating] }]}>
-                        {ContentRating[rating]}
-                      </Text>
-                    </Text>
+                    <Text style={styles.infoText}>Thể loại: {categoryNames}</Text>
                   </View>
                 </View>
               </View>
@@ -143,7 +129,8 @@ const styles = StyleSheet.create({
   infoText: {
     color: '#fff',
     fontSize: 12,
-    textAlign: 'center'
+    textAlign: 'center',
+    paddingHorizontal: 12
   },
   rating: {
     paddingHorizontal: 6,

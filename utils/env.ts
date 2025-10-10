@@ -1,1 +1,1 @@
-export const otruyen = 'https://otruyenapi.com/'
+export const otruyen = 'https://otruyenapi.com'

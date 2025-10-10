@@ -1,11 +1,11 @@
 export interface BaseData {
-  seoOnPage: unknown 
+  seoOnPage: unknown
   breadCrumb: unknown
   params: unknown
   items: unknown
   APP_DOMAIN_CDN_IMAGE: string
   APP_DOMAIN_FRONTEND: string
-  [key: string]: any 
+  [key: string]: any
 }
 
 // generic

@@ -1,27 +1,24 @@
 import React, { useState } from 'react'
 import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
-import { Manga } from '@/api/mangadex/paginate'
+import { Manga } from '@/api/otruyen/common/type'
 
 interface MangaCardProps {
   manga: Manga
+  appDomain?: string
 }
 
-const MangaItem: React.FC<MangaCardProps> = ({ manga }) => {
+const MangaItem: React.FC<MangaCardProps> = ({ manga, appDomain = 'https://img.otruyenapi.com' }) => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
 
-  const altTitle = manga.attributes.altTitles.find(t => t.en)?.en || manga.attributes.altTitles.find(t => t.ja)?.ja
-
-  const title = manga.attributes.altTitles.find(t => t.vi)?.vi ?? manga.attributes.title.en ?? altTitle
-
-  const coverArt = manga.relationships.find(rel => rel.type === 'cover_art')
-  const coverArtFileName = coverArt?.attributes?.fileName
-  const coverImageUrl = coverArtFileName ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArtFileName}` : ''
+  // const altTitle = manga?.item?.origin_name
+  const title = manga?.name
+  const coverImageUrl = appDomain + '/uploads/comics/' + manga?.thumb_url || ''
 
   const handlePress = () => {
-    if (manga.id.trim()) {
-      router.push(`/manga-detail/${manga.id}`)
+    if (manga.slug.trim()) {
+      router.push(`/manga-detail/${manga?.slug}`)
     }
   }
 

@@ -1,31 +1,22 @@
 import React, { useState } from 'react'
 import { ScrollView, View, Text, Image, TouchableOpacity } from 'react-native'
-import { Manga } from '@/api/mangadex/paginate'
-// import { getAuthorById } from '@/api/Author/getAuthorById';
-import { MangaStatus, OriginalLanguage } from '@/utils/enums'
+import { MangaResponseData } from '@/api/otruyen/get-detail-manga'
+import { MangaStatus } from '@/utils/enums'
 import MangaChaptersList from '@/components/tabs/manga-chapter-tab'
-import RelatedManga from '@/components/manga/manga-related'
+import { stripHtml } from '@/utils/format'
 
 interface MangaDetailPageProps {
-  manga: Manga
+  manga: MangaResponseData
 }
 
 export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'chapters' | 'related'>('chapters')
-  const title = manga.attributes.title.vi ? manga.attributes.title.vi : manga.attributes.title.en
-  const attributes = manga.attributes
-  const altTitle = attributes.altTitles
-    .map(item => item.vi || item.en || item.ja)
-    .filter(Boolean)
-    .join(', ')
-  const coverArt = manga.relationships.find(rel => rel.type === 'cover_art')
-  const coverArtFileName = coverArt?.attributes?.fileName
-  const coverImageUrl = coverArtFileName ? `https://uploads.mangadex.org/covers/${manga.id}/${coverArtFileName}` : ''
-  const relatedMangaIds = manga.relationships.filter(rel => rel.type === 'manga').map(rel => rel.id)
-  // const authorId = manga.relationships.find(item => item.type === 'author')?.id;
-  //   const { data: author, isLoading, isError } = useQuery(getAuthorById({ id: authorId! }));
-  //   if (isLoading) return <Loading />;
-  //   if (isError) return <Error />;
+  const title = manga?.item?.name ?? 'Không rõ'
+  const altTitle = manga?.item?.origin_name ?? ''
+  const coverImageUrl = manga?.APP_DOMAIN_CDN_IMAGE + '/uploads/comics/' + manga?.item?.thumb_url || ''
+  const categoryNames = manga?.item?.category.map(c => c.name).join(', ')
+  const author = String(manga?.item?.author || '').trim() || 'Đang cập nhật'
+  const content = stripHtml(manga?.item?.content ?? '')
 
   return (
     <View style={{ flex: 1, backgroundColor: '#000000ff' }}>
@@ -49,14 +40,32 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
         </View>
 
         {/* Info */}
-        <View style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
-          <Text style={{ color: 'white', marginBottom: 4 }}>
-            Tình trạng: {MangaStatus[attributes.status as keyof typeof MangaStatus] || 'Không rõ'}
-          </Text>
-          <Text style={{ color: 'white', marginBottom: 4 }}>Năm phát hành: {attributes.year || 'Không rõ'}</Text>
-          <Text style={{ color: 'white', marginBottom: 4 }}>
-            Ngôn ngữ gốc: {OriginalLanguage[attributes.originalLanguage as keyof typeof OriginalLanguage] || 'Không rõ'}
-          </Text>
+        <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+          <View style={{ backgroundColor: '#1e293b', borderRadius: 12, padding: 12, gap: 6 }}>
+            <Text style={{ color: '#f8fafc', fontSize: 14 }}>
+              <Text style={{ fontWeight: 'bold' }}>Tình trạng: </Text>
+              {MangaStatus[manga?.item?.status as keyof typeof MangaStatus] || 'Không rõ'}
+            </Text>
+
+            <Text style={{ color: '#f8fafc', fontSize: 14 }}>
+              <Text style={{ fontWeight: 'bold' }}>Thể loại: </Text>
+              {categoryNames || 'Không rõ'}
+            </Text>
+
+            <Text style={{ color: '#f8fafc', fontSize: 14 }}>
+              <Text style={{ fontWeight: 'bold' }}>Tác giả: </Text>
+              {author}
+            </Text>
+          </View>
+
+          {/* Mô tả */}
+          {content ? (
+            <View style={{ marginTop: 14, backgroundColor: '#1e293b', borderRadius: 12, padding: 12 }}>
+              <Text style={{ color: '#f8fafc', fontSize: 14, lineHeight: 22, textAlign: 'justify' }}>{content}</Text>
+            </View>
+          ) : (
+            <Text style={{ color: '#9ca3af', marginTop: 14 }}>Đang cập nhật nội dung...</Text>
+          )}
         </View>
 
         {/* Tabs */}
@@ -72,7 +81,7 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
           >
             <Text style={{ color: 'white' }}>Danh sách chương</Text>
           </TouchableOpacity>
-
+          {/* 
           <TouchableOpacity
             style={{
               padding: 10,
@@ -83,13 +92,13 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
             onPress={() => setActiveTab('related')}
           >
             <Text style={{ color: 'white' }}>Manga liên quan</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
 
         {/* Tab Content */}
         <View style={{ paddingHorizontal: 16, paddingBottom: 32 }}>
-          {activeTab === 'chapters' && <MangaChaptersList mangaId={manga.id} langValue='vi' langFilterValue={['vi']} />}
-          {activeTab === 'related' && <RelatedManga ids={relatedMangaIds} />}
+          {activeTab === 'chapters' && <MangaChaptersList chapters={manga.item.chapters} />}
+          {/* {activeTab === 'related' && <RelatedManga ids={relatedMangaIds} />} */}
         </View>
       </ScrollView>
     </View>

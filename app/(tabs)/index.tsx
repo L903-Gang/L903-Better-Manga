@@ -4,15 +4,12 @@ import { ThemedText } from '@/components/themed-text'
 import { ThemedView } from '@/components/themed-view'
 import MangaGridByTagId from '@/components/manga/manga-grid-by-tag-id'
 import SlideMangaCardFullWidth from '@/components/slider/manga-slider'
+import MangaItemSlider from '@/components/slider/manga-item-slider'
 
 export default function HomeScreen() {
   const [showSecond, setShowSecond] = useState(false)
   const [showThird, setShowThird] = useState(false)
   const [loading, setLoading] = useState(true)
-
-  const oneshot = '0234a31e-a729-4e28-9d6a-3f87c4966b9e'
-  const romance = '423e2eae-a7a2-4a8b-ac03-a8351462d71d'
-  const comedy = '4d32cc48-9f00-4cca-9b5a-a839f0764984'
 
   useEffect(() => {
     const t1 = setTimeout(() => setShowSecond(true), 1000)
@@ -45,13 +42,23 @@ export default function HomeScreen() {
           style={{
             marginTop: 20,
             padding: 8,
-            backgroundColor: '#111', // nền cho cả nhóm grid
+            backgroundColor: '#111',
             borderRadius: 12
           }}
         >
-          <MangaGridByTagId title='Lãng mạn' tagId={[romance]} limit={4} />
-          {showSecond && <MangaGridByTagId title='Hài hước' tagId={[comedy]} limit={4} />}
-          {showThird && <MangaGridByTagId title='Oneshot' tagId={[oneshot]} limit={4} />}
+          <MangaGridByTagId title='Đang phát hành' type={'ang-phat-hanh'} />
+          <View style={styles.row}>
+            {showSecond && (
+              <View style={styles.sliderWrapper}>
+                <MangaItemSlider title='Sắp ra mắt' type='sap-ra-mat' />
+              </View>
+            )}
+            {showThird && (
+              <View style={styles.sliderWrapper}>
+                <MangaItemSlider title='Hoàn thành' type='hoan-thanh' />
+              </View>
+            )}
+          </View>
         </View>
 
         {loading && (
@@ -75,5 +82,14 @@ const styles = StyleSheet.create({
   loading: {
     alignItems: 'center',
     marginVertical: 20
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    flexWrap: 'wrap',
+    gap: 10
+  },
+  sliderWrapper: {
+    flex: 1
   }
 })

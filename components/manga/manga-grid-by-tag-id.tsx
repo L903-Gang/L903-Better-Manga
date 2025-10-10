@@ -1,26 +1,21 @@
 import React from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native'
 import MangaItem from '@/components/manga/manga-items'
-import { getTopMangaByTagId } from '@/api/mangadex/manga/get-manga-by-tag-id'
 import { useQuery } from '@tanstack/react-query'
 import Loading from '../status/loading'
 import Error from '../status/error'
 import { useRouter } from 'expo-router'
+import { getListByType } from '@/api/otruyen/list/get-list-by-type'
 
 interface MangaGridProps {
   title?: string
-  tagId: string[]
-  limit: number
+  type: string
+  page?: number
 }
 
-const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, tagId, limit = 10 }) => {
+const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, type, page = 1 }) => {
   const router = useRouter()
-  const {
-    data: mangas,
-    isLoading,
-    isError,
-    error
-  } = useQuery(getTopMangaByTagId({ id: tagId, offset: 0, limit: limit }))
+  const { data: mangas, isLoading, isError, error } = useQuery(getListByType({ type: type, page: page }))
 
   if (isLoading) {
     return <Loading />
@@ -31,7 +26,7 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, tagId, limit = 10 }
     return <Error />
   }
 
-  let data = mangas?.data ? [...mangas.data] : []
+  let data = mangas?.data?.items ? [...mangas?.data?.items] : []
 
   // Nếu số item lẻ → thêm placeholder nhìn cho đỡ bẩn mắt
   if (data.length % 2 !== 0) {
@@ -48,7 +43,7 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, tagId, limit = 10 }
             onPress={() => {
               router.push({
                 pathname: `/tag/[id]`,
-                params: { id: tagId[0] }
+                params: { id: type }
               })
             }}
           >
@@ -60,12 +55,12 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, tagId, limit = 10 }
       {/* Grid 2 cột */}
 
       <FlatList
-        data={mangas?.data}
-        keyExtractor={item => item.id.toString()}
+        data={data}
+        keyExtractor={item => item.slug.toString()}
         numColumns={2}
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => {
-          if (item.id === 'placeholder') {
+          if (item.slug === 'placeholder') {
             return <View style={[styles.gridItem, { backgroundColor: 'transparent' }]} />
           }
           return (
@@ -90,7 +85,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 20,
     paddingHorizontal: 1
   },
   title: {

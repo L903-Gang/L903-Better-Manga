@@ -49,3 +49,8 @@ export const formatDate = (dateString: string) => {
     timeZone: 'Asia/Ho_Chi_Minh'
   }).format(date)
 }
+
+export const stripHtml = (html: string) => {
+  if (!html) return ''
+  return html.replace(/<[^>]+>/g, '').trim()
+}
