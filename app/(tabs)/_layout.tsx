@@ -47,15 +47,15 @@ export default function TabLayout() {
         }}
       />
 
-      {/* <Tabs.Screen
-        name='notifications'
+      <Tabs.Screen
+        name='user'
         options={{
-          title: 'Thông báo',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='bell.fill' color={color} />
+          title: 'Cá nhân',
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name='calendar.and.person' color={color} />
         }}
       />
 
-      <Tabs.Screen 
+      {/* <Tabs.Screen 
         name='profile'
         options={{
           title: 'Tài khoản',

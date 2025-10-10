@@ -74,7 +74,7 @@ export default function FilterMangaScreen() {
     const isOdd = list.length % 2 !== 0
 
     if (isOdd) {
-      list.push({ id: 'placeholder' } as any)
+      list.push({ slug: 'placeholder' } as any)
     }
 
     return list

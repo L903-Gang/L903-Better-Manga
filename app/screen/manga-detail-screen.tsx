@@ -81,23 +81,11 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
           >
             <Text style={{ color: 'white' }}>Danh sách chương</Text>
           </TouchableOpacity>
-          {/* 
-          <TouchableOpacity
-            style={{
-              padding: 10,
-              backgroundColor: activeTab === 'related' ? '#1e40af' : '#374151',
-              borderRadius: 8,
-              marginHorizontal: 4
-            }}
-            onPress={() => setActiveTab('related')}
-          >
-            <Text style={{ color: 'white' }}>Manga liên quan</Text>
-          </TouchableOpacity> */}
         </View>
 
         {/* Tab Content */}
         <View style={{ paddingHorizontal: 16, paddingBottom: 32 }}>
-          {activeTab === 'chapters' && <MangaChaptersList chapters={manga.item.chapters} />}
+          {activeTab === 'chapters' && <MangaChaptersList chapters={manga.item.chapters} slug={manga?.item.slug} />}
           {/* {activeTab === 'related' && <RelatedManga ids={relatedMangaIds} />} */}
         </View>
       </ScrollView>

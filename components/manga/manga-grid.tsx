@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, FlatList, StyleSheet } from 'react-native'
 import MangaItem from '@/components/manga/manga-items'
-import { Manga } from '@/api/mangadex/paginate'
+import { Manga } from '@/api/otruyen/common/type'
 
 interface MangaGridProps {
   mangas: Manga[]
@@ -12,18 +12,18 @@ const MangaGrid: React.FC<MangaGridProps> = ({ mangas }) => {
 
   // Nếu số item lẻ → thêm placeholder nhìn cho đỡ bẩn mắt
   if (data.length % 2 !== 0) {
-    data.push({ id: 'placeholder' } as any)
+    data.push({ slug: 'placeholder' } as any)
   }
 
   return (
     <View style={styles.container}>
       <FlatList
         data={data}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => item?.slug.toString()}
         numColumns={2}
         columnWrapperStyle={styles.row}
         renderItem={({ item }) => {
-          if (item.id === 'placeholder') {
+          if (item?.slug === 'placeholder') {
             return <View style={[styles.gridItem, { backgroundColor: 'transparent' }]} />
           }
           return (

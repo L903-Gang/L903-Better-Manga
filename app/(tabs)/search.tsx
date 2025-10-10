@@ -1,9 +1,7 @@
 import React, { useState, useMemo } from 'react'
 import { View, TextInput, StyleSheet, StatusBar, FlatList, Text, ActivityIndicator, Image } from 'react-native'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { request } from '@/utils/request'
-import { Manga, DataResponse } from '@/api/mangadex/paginate'
 import MangaItem from '@/components/manga/manga-items'
+import { useInfiniteKeywordList } from '@/api/otruyen/search/get-list-by-keyword'
 
 export default function SearchScreen() {
   const [searchText, setSearchText] = useState('')
@@ -15,43 +13,21 @@ export default function SearchScreen() {
     setSubmittedSearchText(trimmedText)
   }
 
-  // Infinite query cho search
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
-    queryKey: ['search-infinite', submittedSearchText],
-    queryFn: ({ pageParam = 0 }): Promise<DataResponse<Manga>> => {
-      if (!submittedSearchText) {
-        return Promise.resolve({
-          data: [],
-          limit: limit,
-          offset: 0,
-          total: 0
-        } as unknown as DataResponse<Manga>)
-      }
-
-      return request<DataResponse<Manga>>(`manga/`, 'GET', {
-        title: submittedSearchText,
-        'order[followedCount]': 'desc',
-        limit: limit,
-        'availableTranslatedLanguage[]': 'en',
-        'includes[]': 'cover_art',
-        offset: pageParam
-      })
-    },
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalLoaded = allPages.length * limit
-      return totalLoaded < lastPage.total ? totalLoaded : undefined
-    },
-    enabled: submittedSearchText.length > 0 // Chỉ chạy query khi có search text
-  })
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteKeywordList({ keyword: submittedSearchText, limit: limit })
 
   // Flatten data từ tất cả các pages
   const mangas = useMemo(() => {
-    return data?.pages.flatMap(page => page.data) ?? []
+    return data?.pages.flatMap(page => page.data.items) ?? []
   }, [data])
 
   // Total count từ page đầu tiên
-  const totalCount = data?.pages[0]?.total ?? 0
+  const totalCount = data?.pages[0]?.data?.params?.pagination?.totalItems ?? 0
 
   const handleLoadMore = () => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -87,7 +63,7 @@ export default function SearchScreen() {
 
     // chỉ thêm placeholder khi không rỗng và lẻ
     if (list.length > 0 && list.length % 2 !== 0) {
-      list.push({ id: 'placeholder' } as any)
+      list.push({ slug: 'placeholder' } as any)
     }
 
     return list
@@ -106,7 +82,7 @@ export default function SearchScreen() {
     if (!isLoading && mangas.length === 0 && submittedSearchText !== '') {
       return (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>Không tìm thấy manga nào với từ khóa {submittedSearchText}</Text>
+          <Text style={styles.emptyText}>Không tìm thấy truyện nào với từ khóa {submittedSearchText}</Text>
         </View>
       )
     }
@@ -151,11 +127,11 @@ export default function SearchScreen() {
 
         <FlatList
           data={displayedMangas}
-          keyExtractor={item => item.id.toString()}
+          keyExtractor={item => item.slug}
           numColumns={2}
           columnWrapperStyle={mangas.length > 0 ? styles.row : undefined}
           renderItem={({ item }) =>
-            item.id === 'placeholder' ? (
+            item.slug === 'placeholder' ? (
               <View style={[styles.gridItem, { backgroundColor: 'transparent' }]} />
             ) : (
               <View style={styles.gridItem}>

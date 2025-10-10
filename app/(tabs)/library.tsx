@@ -48,7 +48,7 @@ const TagListScreen = () => {
 
     // nếu list lẻ thì đầy placeholder vào cho đỡ xấu
     if (data.length % 2 !== 0) {
-      data.push({ id: 'placeholder', attributes: { name: { en: '' } } } as Tag)
+      data.push({ slug: 'placeholder', attributes: { name: { en: '' } } } as Tag)
     }
 
     return (

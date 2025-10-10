@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Animated, ActivityIndicator } from 'react-native'
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ActivityIndicator } from 'react-native'
 import { Picker } from '@react-native-picker/picker'
 import { useRouter } from 'expo-router'
 
@@ -17,9 +17,10 @@ interface ServerData {
 
 interface MangaChaptersListProps {
   chapters: ServerData[]
+  slug: string
 }
 
-const MangaChaptersList: React.FC<MangaChaptersListProps> = ({ chapters }) => {
+const MangaChaptersList: React.FC<MangaChaptersListProps> = ({ chapters, slug }) => {
   const router = useRouter()
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [visibleChapters, setVisibleChapters] = useState<ChapterItem[]>([])
@@ -95,18 +96,18 @@ const MangaChaptersList: React.FC<MangaChaptersListProps> = ({ chapters }) => {
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <TouchableOpacity
             style={styles.chapterItem}
             onPress={() =>
               router.push({
                 pathname: `/reader/[id]`,
-                params: { id: item.chapter_api_data }
+                params: { id: item?.chapter_api_data, slug: slug, index: index }
               })
             }
           >
-            {item.chapter_title ? <Text style={styles.chapterTitle}>{item.chapter_title}</Text> : null}
-            <Text style={styles.chapterText}>Chapter {item.chapter_name}</Text>
+
+            <Text style={styles.chapterText}>Chapter {item.chapter_name}{item.chapter_title ? <Text>: {item.chapter_title}</Text> : null}</Text>
           </TouchableOpacity>
         )}
       />
@@ -146,10 +147,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontStyle: 'italic'
-  },
-  chapterTitle: {
-    color: '#fff',
-    fontWeight: 'bold'
   },
   loadingFooter: {
     paddingVertical: 20,

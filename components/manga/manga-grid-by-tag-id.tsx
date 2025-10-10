@@ -30,7 +30,7 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, type, page = 1 }) =
 
   // Nếu số item lẻ → thêm placeholder nhìn cho đỡ bẩn mắt
   if (data.length % 2 !== 0) {
-    data.push({ id: 'placeholder' } as any)
+    data.push({ slug: 'placeholder' } as any)
   }
 
   return (
