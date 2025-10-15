@@ -1,31 +1,17 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getTag, Tag } from '@/api/mangadex/tag/get-tag'
+import { getCategory } from '@/api/otruyen/get-category'
 import { router } from 'expo-router'
 import Loading from '@/components/status/loading'
 import Error from '@/components/status/error'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Category } from '@/api/otruyen/common/type'
 
 const TagListScreen = () => {
-  const { data, isLoading, error } = useQuery(getTag())
+  const { data, isLoading, error } = useQuery(getCategory())
 
-  const tags = data?.data ?? []
-
-  const grouped = useMemo(() => {
-    const map: Record<'genre' | 'theme' | 'format', Tag[]> = {
-      genre: [],
-      theme: [],
-      format: []
-    }
-    tags.forEach(tag => {
-      const g = tag.attributes.group
-      if (g === 'genre' || g === 'theme' || g === 'format') {
-        map[g].push(tag)
-      }
-    })
-    return map
-  }, [tags])
+  const category = data?.data.items ?? []
 
   if (isLoading) {
     return (
@@ -43,19 +29,19 @@ const TagListScreen = () => {
     )
   }
 
-  const renderGrid = (list: Tag[]) => {
+  const renderGrid = (list: Category[]) => {
     let data = [...list]
 
     // nếu list lẻ thì đầy placeholder vào cho đỡ xấu
     if (data.length % 2 !== 0) {
-      data.push({ slug: 'placeholder', attributes: { name: { en: '' } } } as Tag)
+      data.push({ slug: 'placeholder', name: 'placeholder', id: 'placeholder' })
     }
 
     return (
       <FlatList
         data={data}
         style={{}}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.slug}
         numColumns={2}
         scrollEnabled={false}
         renderItem={({ item }) => {
@@ -68,11 +54,11 @@ const TagListScreen = () => {
               onPress={() => {
                 router.push({
                   pathname: `/tag/[id]`,
-                  params: { id: item.id }
+                  params: { id: item.slug }
                 })
               }}
             >
-              <Text style={styles.tagText}>{item.attributes.name.en}</Text>
+              <Text style={styles.tagText}>{item.name}</Text>
             </TouchableOpacity>
           )
         }}
@@ -84,14 +70,7 @@ const TagListScreen = () => {
     <SafeAreaView edges={['top']} style={{ paddingBlockEnd: 20 }}>
       <ScrollView style={styles.container}>
         <Text style={styles.title}>Thể loại</Text>
-        {renderGrid(grouped.genre)}
-
-        <Text style={styles.title}>Theme</Text>
-        {renderGrid(grouped.theme)}
-
-        <Text style={styles.title}>Hình thức phát hành</Text>
-        {renderGrid(grouped.format)}
-
+        {renderGrid(category)}
         <View style={{ paddingTop: 36 }}></View>
       </ScrollView>
     </SafeAreaView>

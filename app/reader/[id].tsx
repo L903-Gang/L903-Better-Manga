@@ -8,7 +8,7 @@ export default function MangaReaderPageWrapper() {
 }
 
 function MangaReaderContent() {
-  const { id, slug, index } = useLocalSearchParams()
+  const { id, slug } = useLocalSearchParams()
   const chapterId = String(id)
   const slugManga = String(slug)
 
@@ -16,7 +16,7 @@ function MangaReaderContent() {
 
   return (
     <View style={[styles.container, { flex: 1, backgroundColor }]}>
-      <ChapterReaderScreen chapterId={chapterId} slug={slugManga} index={Number(index)}/>
+      <ChapterReaderScreen chapterId={chapterId} slug={slugManga} />
     </View>
   )
 }

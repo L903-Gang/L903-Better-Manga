@@ -22,10 +22,9 @@ const { width } = Dimensions.get('window')
 interface ChapterReaderScreenProps {
   chapterId: string
   slug: string
-  index: number
 }
 
-const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, slug, index }) => {
+const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, slug }) => {
   const [chapterData, setChapterData] = useState<any>(null)
   const [isModalVisible, setModalVisible] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -54,7 +53,7 @@ const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, sl
   const chapter_image = chapterData?.data?.item?.chapter_image
   const imageUrls =
     chapter_image?.map((img: any) => ({
-      url: `${domain}/${chapter_path}/${img.image_file}`,
+      url: `${domain}/${chapter_path}/${img.image_file}`
     })) ?? []
 
   useEffect(() => {
@@ -84,10 +83,13 @@ const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, sl
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
           <TouchableOpacity activeOpacity={0.9} onPress={() => openModal(index)}>
-            <ChapterImage uri={item.url} />
+            <ChapterImage uri={item.url ?? '@/assets/images/xin-loi-ouguri-cap-cua-toi-an-het-anh-roi.jpg'} />
           </TouchableOpacity>
         )}
       />
+      <View style={styles.footer}>
+        <ChapterNavigator key={chapterId} mangaId={slug} currentChapterId={chapterId} />
+      </View>
 
       <Modal
         onModalShow={() => ToastAndroid.show('Vuốt xuống để thoát', ToastAndroid.SHORT)}
@@ -97,6 +99,7 @@ const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, sl
         onBackdropPress={() => setModalVisible(false)}
       >
         <ImageViewer
+          // key={imageUrls + selectedIndex}
           imageUrls={imageUrls}
           index={selectedIndex}
           enableSwipeDown
@@ -104,49 +107,71 @@ const ChapterReaderScreen: React.FC<ChapterReaderScreenProps> = ({ chapterId, sl
           saveToLocalByLongPress={false}
           onSwipeDown={() => setModalVisible(false)}
           backgroundColor='#000'
-          loadingRender={() => <View style={[styles.container]}>
-            <Loading />
-          </View>}
+          loadingRender={() => (
+            <View style={[styles.container]}>
+              <Loading />
+            </View>
+          )}
         />
       </Modal>
     </SafeAreaView>
   )
 }
 
-
 export default ChapterReaderScreen
 
 const ChapterImage: React.FC<{ uri: string }> = ({ uri }) => {
   const [loading, setLoading] = useState(true)
+  const [ratio, setRatio] = useState<number | null>(null)
+  const tempHeight = width * (ratio ?? 1.5)
+
+  useEffect(() => {
+    Image.getSize(
+      uri,
+      (w, h) => setRatio(h / w),
+      () => setRatio(1.5) // fallback nếu không đo được
+    )
+  }, [uri])
 
   return (
-    <View style={styles.wrapper}>
+    <View style={[styles.wrapper, { height: tempHeight }]}>
       {loading && (
         <View style={styles.loadingOverlay}>
           <ActivityIndicator size='large' color='#60a5fa' />
         </View>
       )}
-      <Image
-        source={{ uri }}
-        style={styles.image}
-        resizeMode='contain'
-        onLoad={() => setLoading(false)}
-        onError={() => setLoading(false)}
-      />
+      {ratio && (
+        <Image
+          source={{ uri }}
+          style={[
+            styles.image,
+            { height: width * ratio } // tự co theo tỷ lệ
+          ]}
+          resizeMode='contain'
+          onLoad={() => setLoading(false)}
+          onError={() => setLoading(false)}
+        />
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#000' },
-  image: { width: width * 0.95, height: undefined, aspectRatio: 1 / 1.5 },
+  image: { width: width * 0.95, height: undefined, aspectRatio: 1 / 1.5, resizeMode: 'contain' },
   footer: { height: 50, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111' },
   wrapper: {
-    width: '100%',
-    aspectRatio: 1 / 1.4,
-    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000'
+    justifyContent: 'center',
+    marginBottom: 2
   },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, justifyContent: 'center', alignItems: 'center' }
+  loadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

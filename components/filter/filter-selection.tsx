@@ -1,137 +1,54 @@
-import React, { useMemo } from 'react'
+import React from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native'
 import { useQuery } from '@tanstack/react-query'
-import { getTag, Tag } from '@/api/mangadex/tag/get-tag'
-import { ContentRating } from '@/utils/enums'
+import { getCategory } from '@/api/otruyen/get-category'
 
 type Props = {
-  selectedTags: string[]
-  setSelectedTags: React.Dispatch<React.SetStateAction<string[]>>
-  sortBy: 'followedCount' | 'latestUploadedChapter' | 'year'
-  setSortBy: React.Dispatch<React.SetStateAction<'followedCount' | 'latestUploadedChapter' | 'year'>>
-  rating: Array<'all' | 'safe' | 'suggestive' | 'erotica' | 'pornographic'>
-  setRating: React.Dispatch<React.SetStateAction<Array<'safe' | 'suggestive' | 'erotica' | 'pornographic'>>>
+  selectedTags: string
+  setSelectedTags: React.Dispatch<React.SetStateAction<string>>
+  setShowFilter: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-export default function FilterSelection({
-  selectedTags,
-  setSelectedTags,
-  sortBy,
-  setSortBy,
-  rating,
-  setRating
-}: Props) {
-  const { data: tagData, isLoading } = useQuery(getTag())
+export default function FilterSelection({ selectedTags, setSelectedTags, setShowFilter }: Props) {
+  const { data, isLoading, error } = useQuery(getCategory())
+  const categories = data?.data.items ?? []
 
-  const { genres, themes, formats } = useMemo(() => {
-    const all = tagData?.data ?? []
-    return {
-      genres: all.filter(tag => tag.attributes.group === 'genre'),
-      themes: all.filter(tag => tag.attributes.group === 'theme'),
-      formats: all.filter(tag => tag.attributes.group === 'format')
-    }
-  }, [tagData])
-
-  const allOptions: Array<'safe' | 'suggestive' | 'erotica' | 'pornographic'> = [
-    'safe',
-    'suggestive',
-    'erotica',
-    'pornographic'
-  ]
-
-  const toggleRating = (value: 'all' | keyof typeof ContentRating) => {
-    if (value === 'all') {
-      setRating(allOptions) // chọn hết
-      return
-    }
-
-    setRating(prev => {
-      if (prev.includes(value)) {
-        return prev.filter(r => r !== value)
-      } else {
-        return [...prev, value]
-      }
-    })
+  const toggleTag = (tagSlug: string) => {
+    setSelectedTags(tagSlug)
+    setShowFilter(false)
   }
-
-  const toggleTag = (tagId: string) => {
-    setSelectedTags(prev => (prev.includes(tagId) ? prev.filter(t => t !== tagId) : [...prev, tagId]))
-  }
-
-  const renderTagGroup = (title: string, list: Tag[]) => (
-    <View style={styles.tagGroup}>
-      <Text style={styles.groupTitle}>{title}</Text>
-      <View style={styles.tagContainer}>
-        {list.map(tag => {
-          const isSelected = selectedTags.includes(tag.id)
-          return (
-            <TouchableOpacity
-              key={tag.id}
-              style={[styles.tagItem, isSelected && styles.tagSelected]}
-              onPress={() => toggleTag(tag.id)}
-            >
-              <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>{tag.attributes.name.en}</Text>
-            </TouchableOpacity>
-          )
-        })}
-      </View>
-    </View>
-  )
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size='large' color='#60a5fa' />
+        <Text style={{ color: '#fff', marginTop: 8 }}>Đang tải thể loại...</Text>
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={{ color: '#fff' }}>Không thể tải thể loại</Text>
       </View>
     )
   }
 
   return (
     <ScrollView style={styles.container}>
-      {renderTagGroup('Thể loại', genres)}
-      {renderTagGroup('Theme', themes)}
-      {renderTagGroup('Hình thức phát hành', formats)}
-
-      {/* SortBy */}
-      <View style={styles.extraFilter}>
-        <Text style={styles.groupTitle}>Sắp xếp theo</Text>
+      <View style={styles.tagGroup}>
+        <Text style={styles.groupTitle}>Thể loại</Text>
         <View style={styles.tagContainer}>
-          {['followedCount', 'latestUploadedChapter', 'year'].map(option => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.tagItem, sortBy === option && styles.tagSelected]}
-              onPress={() => setSortBy(option as any)}
-            >
-              <Text style={[styles.tagText, sortBy === option && styles.tagTextSelected]}>
-                {option === 'followedCount'
-                  ? 'Theo dõi nhiều'
-                  : option === 'latestUploadedChapter'
-                    ? 'Chương mới'
-                    : 'Năm phát hành'}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      {/* Rating */}
-      <View style={styles.extraFilter}>
-        <Text style={styles.groupTitle}>Rating</Text>
-        <View style={styles.tagContainer}>
-          {['all', ...allOptions].map(option => {
-            const isSelected =
-              option === 'all'
-                ? rating.length === allOptions.length
-                : rating.includes(option as keyof typeof ContentRating)
-
+          {categories.map(cat => {
+            const isSelected = selectedTags === cat.slug
             return (
               <TouchableOpacity
-                key={option}
+                key={cat.id + cat.slug}
                 style={[styles.tagItem, isSelected && styles.tagSelected]}
-                onPress={() => toggleRating(option as any)}
+                onPress={() => toggleTag(cat.slug)}
               >
-                <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>
-                  {option === 'all' ? 'Tất cả' : ContentRating[option as keyof typeof ContentRating]}
-                </Text>
+                <Text style={[styles.tagText, isSelected && styles.tagTextSelected]}>{cat.name}</Text>
               </TouchableOpacity>
             )
           })}
@@ -150,6 +67,5 @@ const styles = StyleSheet.create({
   tagText: { color: '#9ca3af', fontSize: 14 },
   tagSelected: { backgroundColor: '#60a5fa' },
   tagTextSelected: { color: '#fff', fontWeight: '600' },
-  extraFilter: { marginBottom: 20 },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' }
 })

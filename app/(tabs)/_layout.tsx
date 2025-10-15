@@ -51,7 +51,7 @@ export default function TabLayout() {
         name='user'
         options={{
           title: 'Cá nhân',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='calendar.and.person' color={color} />
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name='person.circle' color={color} />
         }}
       />
 

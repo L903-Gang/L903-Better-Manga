@@ -62,6 +62,7 @@ export interface MangaResponseData extends BaseData {
 export const getDetailManga = ({ slug }: GetDetailMangaRequest) => {
   return queryOptions({
     queryKey: ['get-detail-manga', slug],
-    queryFn: () => request<ResponseData<MangaResponseData>>(`v1/api/truyen-tranh/${slug}`, 'GET', {}, {}, otruyen)
+    queryFn: () => request<ResponseData<MangaResponseData>>(`v1/api/truyen-tranh/${slug}`, 'GET', {}, {}, otruyen),
+    staleTime: 0
   })
 }

@@ -96,18 +96,20 @@ const MangaChaptersList: React.FC<MangaChaptersListProps> = ({ chapters, slug })
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
-        renderItem={({ item, index }) => (
+        renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.chapterItem}
             onPress={() =>
               router.push({
                 pathname: `/reader/[id]`,
-                params: { id: item?.chapter_api_data, slug: slug, index: index }
+                params: { id: item?.chapter_api_data, slug: slug }
               })
             }
           >
-
-            <Text style={styles.chapterText}>Chapter {item.chapter_name}{item.chapter_title ? <Text>: {item.chapter_title}</Text> : null}</Text>
+            <Text style={styles.chapterText}>
+              Chapter {item.chapter_name}
+              {item.chapter_title ? <Text>: {item.chapter_title}</Text> : null}
+            </Text>
           </TouchableOpacity>
         )}
       />

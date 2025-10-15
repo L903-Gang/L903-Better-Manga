@@ -13,13 +13,10 @@ export default function SearchScreen() {
     setSubmittedSearchText(trimmedText)
   }
 
-  const {
-    data,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-    isLoading,
-  } = useInfiniteKeywordList({ keyword: submittedSearchText, limit: limit })
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteKeywordList({
+    keyword: submittedSearchText,
+    limit: limit
+  })
 
   // Flatten data từ tất cả các pages
   const mangas = useMemo(() => {

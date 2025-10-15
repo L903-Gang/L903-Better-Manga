@@ -2,81 +2,72 @@ import React, { useState, useMemo, useEffect } from 'react'
 import { View, FlatList, ActivityIndicator, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { request } from '@/utils/request'
-import { Manga, DataResponse } from '@/api/mangadex/paginate'
-import MangaItem from '@/components/manga/manga-items'
-import FilterSelection from '@/components/filter/filter-selection'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useLocalSearchParams, useNavigation } from 'expo-router'
 import Loading from '@/components/status/loading'
 import Error from '@/components/status/error'
-import { useLocalSearchParams } from 'expo-router'
-import { useNavigation } from 'expo-router'
+import MangaItem from '@/components/manga/manga-items'
+import FilterSelection from '@/components/filter/filter-selection'
+import { ItemsResponseData } from '@/api/otruyen/list/get-list-by-category'
+import { otruyen } from '@/utils/env'
+
+// const limit = 20
 
 export default function FilterMangaScreen() {
   const { id } = useLocalSearchParams()
-  const tagId = String(id)
-  const limit = 20
-  const [selectedTags, setSelectedTags] = useState<string[]>([tagId])
-  const [sortBy, setSortBy] = useState<'followedCount' | 'latestUploadedChapter' | 'year'>('followedCount')
-  const [rating, setRating] = useState<Array<'safe' | 'suggestive' | 'erotica' | 'pornographic'>>(['safe'])
-  const [showFilter, setShowFilter] = useState(false) // mặc định ẩn
+  const slug = String(id)
+  const [selectedTags, setSelectedTags] = useState(slug)
+  const [showFilter, setShowFilter] = useState(false)
 
-  // handle back button
+  // Handle back button
   const navigation = useNavigation()
-
   useEffect(() => {
     const backAction = () => {
       if (showFilter) {
         setShowFilter(false)
-        return true // chặn back
+        return true
       } else if (navigation.canGoBack()) {
-        navigation.goBack() // pop màn hình
-        return true // đã xử lý
+        navigation.goBack()
+        return true
       }
-      return false // để hệ thống xử lý (thường thoát app nếu màn hình đầu)
+      return false
     }
 
     const backHandler = BackHandler.addEventListener('hardwareBackPress', backAction)
-
     return () => backHandler.remove()
   }, [showFilter, navigation])
 
+  // Infinite Query
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
-    queryKey: ['get-filter-manga', selectedTags, sortBy, rating],
-    queryFn: ({ pageParam = 0 }): Promise<DataResponse<Manga>> => {
-      const params: Record<string, any> = {
-        limit,
-        title: '',
-        offset: pageParam,
-        'availableTranslatedLanguage[]': 'en',
-        'includes[]': 'cover_art',
-        'includedTags[]': selectedTags,
-        'order[followedCount]': sortBy === 'followedCount' ? 'desc' : 'asc',
-        'order[latestUploadedChapter]': sortBy === 'latestUploadedChapter' ? 'desc' : 'asc',
-        'order[year]': sortBy === 'year' ? 'desc' : 'asc',
-        'contentRating[]': rating
-      }
-      return request<DataResponse<Manga>>('manga/', 'GET', params)
-    },
-    initialPageParam: 0,
+    queryKey: ['get-list-by-category', selectedTags],
+    queryFn: ({ pageParam = 1 }) =>
+      request<ItemsResponseData>(
+        `v1/api/the-loai/${selectedTags}`,
+        'GET',
+        { page: pageParam },
+        {},
+        // import sẵn: otruyen
+        otruyen
+      ),
+    initialPageParam: 1,
     getNextPageParam: (lastPage, allPages) => {
-      const totalLoaded = allPages.length * limit
-      return totalLoaded < lastPage.total ? totalLoaded : undefined
+      const totalPages = lastPage.data?.params?.pagination?.pageRanges ?? 1
+      const currentPage = lastPage.data?.params?.pagination?.currentPage ?? 1
+      return currentPage < totalPages ? currentPage + 1 : undefined
     }
   })
 
-  const mangas = useMemo(() => data?.pages.flatMap(page => page.data) ?? [], [data])
+  // Gộp list từ các page
+  const mangas = useMemo(() => {
+    return data?.pages.flatMap(page => page.data?.items ?? []) ?? []
+  }, [data])
 
-  // Clone danh sách manga và thêm 1 placeholder cho đỡ bẩn mắt
+  // Thêm placeholder nếu số lẻ
   const displayedMangas = useMemo(() => {
     if (!mangas || mangas.length === 0) return []
-
     const list = [...mangas]
     const isOdd = list.length % 2 !== 0
-
-    if (isOdd) {
-      list.push({ slug: 'placeholder' } as any)
-    }
-
+    if (isOdd) list.push({ _id: 'placeholder' } as any)
     return list
   }, [mangas])
 
@@ -96,6 +87,7 @@ export default function FilterMangaScreen() {
         </View>
       )
     }
+    return null
   }
 
   if (isError) {
@@ -105,39 +97,33 @@ export default function FilterMangaScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
-      {/* Button toggle */}
-      <View style={{ paddingVertical: 12, alignItems: 'center' }}>
+      <View key={'showFilter'} style={{ paddingVertical: 12, alignItems: 'center' }}>
         <TouchableOpacity style={styles.toggleBtn} onPress={() => setShowFilter(prev => !prev)}>
           <Text style={styles.toggleText}>{showFilter ? 'Ẩn bộ lọc' : 'Hiện bộ lọc'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Filter toàn màn hình */}
       {showFilter && (
         <View style={styles.fullScreenFilter}>
           <FilterSelection
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
-            sortBy={sortBy}
-            setSortBy={setSortBy}
-            rating={rating}
-            setRating={setRating}
+            setShowFilter={setShowFilter}
           />
         </View>
       )}
 
-      {/* Content */}
       {!showFilter &&
         (isLoading ? (
           <Loading />
         ) : (
           <FlatList
             data={displayedMangas}
-            keyExtractor={item => item.id.toString()}
+            keyExtractor={item => item._id?.toString()}
             numColumns={2}
             columnWrapperStyle={displayedMangas.length > 0 ? styles.row : undefined}
             renderItem={({ item }) => {
-              if (item.id === 'placeholder') {
+              if (item._id === 'placeholder') {
                 return <View style={[styles.gridItem, { backgroundColor: 'transparent' }]} />
               }
               return (

@@ -4,6 +4,7 @@ import { MangaResponseData } from '@/api/otruyen/get-detail-manga'
 import { MangaStatus } from '@/utils/enums'
 import MangaChaptersList from '@/components/tabs/manga-chapter-tab'
 import { stripHtml } from '@/utils/format'
+import BookmarkButton from '@/components/bookmark/bookmark-button'
 
 interface MangaDetailPageProps {
   manga: MangaResponseData
@@ -66,6 +67,10 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
           ) : (
             <Text style={{ color: '#9ca3af', marginTop: 14 }}>Đang cập nhật nội dung...</Text>
           )}
+        </View>
+
+        <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
+          <BookmarkButton slug={manga.item.slug} image={coverImageUrl} name={title} />
         </View>
 
         {/* Tabs */}

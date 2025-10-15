@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar'
 import { useEffect } from 'react'
 import 'react-native-reanimated'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { AuthProvider } from '@/context/auth-provider'
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync()
@@ -29,40 +30,42 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={DarkTheme}>
-        <View style={{ flex: 1, backgroundColor: 'black' }}>
-          <Stack>
-            <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
-            <Stack.Screen name='+not-found' />
-            <Stack.Screen
-              name='manga-detail/[id]'
-              options={{
-                headerTitle: '',
-                headerStyle: { backgroundColor: '#192d5aff' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
-                // headerShown: false
-              }}
-            />
-            <Stack.Screen
-              name='reader/[id]'
-              options={{
-                headerShown: false
-              }}
-            />
-            <Stack.Screen
-              name='tag/[id]'
-              options={{
-                headerTitle: 'Tìm kiếm nâng cao',
-                headerStyle: { backgroundColor: '#192d5aff' },
-                headerTintColor: '#fff', // màu icon back
-                headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
-              }}
-            />
-          </Stack>
-          <StatusBar style='auto' />
-        </View>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider value={DarkTheme}>
+          <View style={{ flex: 1, backgroundColor: 'black' }}>
+            <Stack>
+              <Stack.Screen name='(tabs)' options={{ headerShown: false }} />
+              <Stack.Screen name='+not-found' />
+              <Stack.Screen
+                name='manga-detail/[id]'
+                options={{
+                  headerTitle: '',
+                  headerStyle: { backgroundColor: '#192d5aff' },
+                  headerTintColor: '#fff',
+                  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
+                  // headerShown: false
+                }}
+              />
+              <Stack.Screen
+                name='reader/[id]'
+                options={{
+                  headerShown: false
+                }}
+              />
+              <Stack.Screen
+                name='tag/[id]'
+                options={{
+                  headerTitle: 'Tìm kiếm nâng cao',
+                  headerStyle: { backgroundColor: '#192d5aff' },
+                  headerTintColor: '#fff', // màu icon back
+                  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
+                }}
+              />
+            </Stack>
+            <StatusBar style='auto' />
+          </View>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   )
 }

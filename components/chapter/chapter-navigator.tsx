@@ -1,82 +1,48 @@
 import React, { useState, useMemo } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList, ActivityIndicator } from 'react-native'
-import { useInfiniteQuery } from '@tanstack/react-query'
-import { request } from '@/utils/request'
-import { DataResponse } from '@/api/mangadex/paginate'
-import { Chapter } from '@/api/mangadex/chapter/get-chapter-by-id'
-import { formatDate } from '@/utils/format'
+import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native'
+import { useQuery } from '@tanstack/react-query'
+import { getDetailManga } from '@/api/otruyen/get-detail-manga'
 import { useRouter } from 'expo-router'
+import Ionicons from 'react-native-vector-icons/Ionicons'
 import Error from '../status/error'
 import Loading from '../status/loading'
-import Ionicons from 'react-native-vector-icons/Ionicons'
 
-interface ChapterFooterProps {
+interface ChapterNavigatorProps {
   mangaId: string
   currentChapterId: string
-  langFilter?: string[]
 }
 
-const ChapterNavigator: React.FC<ChapterFooterProps> = ({ mangaId, currentChapterId, langFilter = ['vi'] }) => {
+const ChapterNavigator: React.FC<ChapterNavigatorProps> = ({ mangaId, currentChapterId }) => {
   const [modalVisible, setModalVisible] = useState(false)
-  const [selectedFilter, setSelectedFilter] = useState<string[]>(langFilter)
-  const limit = 500
   const router = useRouter()
+  // const limit = 500
+  const { data: manga, isLoading, isError } = useQuery(getDetailManga({ slug: mangaId }))
+  const chapters = useMemo(() => manga?.data?.item?.chapters[0].server_data ?? [], [manga])
+  const currentIndex = useMemo(
+    () => chapters.findIndex(c => c.chapter_api_data === currentChapterId),
+    [chapters, currentChapterId]
+  )
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError } = useInfiniteQuery({
-    queryKey: ['chapters-footer', mangaId, selectedFilter],
-    queryFn: ({ pageParam = 0 }) =>
-      request<DataResponse<Chapter>>(`/manga/${mangaId}/feed`, 'GET', {
-        limit,
-        offset: pageParam,
-        'translatedLanguage[]': selectedFilter,
-        'order[chapter]': 'asc'
-      }),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalLoaded = allPages.length * limit
-      return totalLoaded < lastPage.total ? totalLoaded : undefined
-    },
-    staleTime: 1000 * 60 * 30
-  })
+  const currentChapter = chapters[currentIndex]
+  const currentLabel = currentChapter ? `Chapter ${currentChapter.chapter_name ?? 'Oneshot'}` : 'Danh sách Chapter'
 
-  const chapters = useMemo(() => data?.pages.flatMap(page => page.data) ?? [], [data])
-
-  const currentIndex = useMemo(() => chapters.findIndex(c => c.id === currentChapterId), [chapters, currentChapterId])
-
-  const currentChapter = chapters.find(c => c.id === currentChapterId)
-
-  const currentLabel = currentChapter?.attributes.chapter
-    ? `Chapter ${currentChapter.attributes.chapter}`
-    : 'Danh sách Chapter'
-
-  const filterOptions = [
-    { label: 'Mặc định', value: ['vi', 'en', 'ja'] },
-    { label: 'Tiếng Việt', value: ['vi'] },
-    { label: 'Tiếng Anh', value: ['en'] },
-    { label: 'Tiếng Nhật', value: ['ja'] }
-  ]
+  const navigateTo = (index: number) => {
+    const chapter = chapters[index]
+    if (!chapter) return
+    router.replace({
+      pathname: `/reader/[id]`,
+      params: { id: chapter.chapter_api_data, slug: mangaId }
+    })
+  }
 
   return (
     <View style={styles.footer}>
       {/* Nút Lùi */}
-      <TouchableOpacity
-        style={styles.button}
-        disabled={currentIndex <= 0}
-        onPress={() => {
-          const prev = chapters[currentIndex - 1]
-          if (prev) {
-            router.replace({
-              pathname: `/reader/[id]`,
-              params: { id: prev.id, mangaId: String(mangaId) }
-            })
-          }
-        }}
-      >
+      <TouchableOpacity style={styles.button} disabled={currentIndex <= 0} onPress={() => navigateTo(currentIndex - 1)}>
         <Ionicons name='arrow-back' size={20} color={currentIndex <= 0 ? '#666' : '#fff'} />
       </TouchableOpacity>
 
-      {/* Mở Modal danh sách */}
-      <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)} activeOpacity={0.5}>
+      <TouchableOpacity style={styles.button} onPress={() => setModalVisible(true)}>
         <Text style={styles.text}>{currentLabel}</Text>
       </TouchableOpacity>
 
@@ -84,15 +50,7 @@ const ChapterNavigator: React.FC<ChapterFooterProps> = ({ mangaId, currentChapte
       <TouchableOpacity
         style={styles.button}
         disabled={currentIndex < 0 || currentIndex >= chapters.length - 1}
-        onPress={() => {
-          const next = chapters[currentIndex + 1]
-          if (next) {
-            router.replace({
-              pathname: `/reader/[id]`,
-              params: { id: next.id, mangaId: String(mangaId) }
-            })
-          }
-        }}
+        onPress={() => navigateTo(currentIndex + 1)}
       >
         <Ionicons
           name='arrow-forward'
@@ -101,71 +59,38 @@ const ChapterNavigator: React.FC<ChapterFooterProps> = ({ mangaId, currentChapte
         />
       </TouchableOpacity>
 
-      {/* Modal danh sách */}
+      {/* Modal Danh Sách Chapter */}
       <Modal visible={modalVisible} transparent animationType='slide' onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            {/* Filter Tabs */}
-            <View style={styles.filterRow}>
-              {filterOptions.map(opt => (
-                <TouchableOpacity
-                  key={opt.label}
-                  style={[
-                    styles.filterButton,
-                    selectedFilter.toString() === opt.value.toString() && styles.filterButtonActive
-                  ]}
-                  onPress={() => setSelectedFilter(opt.value)}
-                >
-                  <Text style={styles.filterText}>{opt.label}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
             {isLoading ? (
-              <View style={{ justifyContent: 'center', alignItems: 'center', marginTop: 250 }}>
-                <Loading />
-              </View>
-            ) : isError || !mangaId ? (
+              <Loading />
+            ) : isError || !chapters.length ? (
               <View style={{ justifyContent: 'center', alignItems: 'center' }}>
                 <Error />
-                <Text
-                  style={{
-                    color: '#fff',
-                    marginTop: 250,
-                    fontWeight: '700'
-                  }}
-                >
-                  Chỗ này trống trải quá
-                </Text>
+                <Text style={{ color: '#fff' }}>Không có chapter nào</Text>
               </View>
             ) : (
               <FlatList
                 data={chapters}
-                keyExtractor={item => item.id}
+                keyExtractor={item => item.chapter_api_data}
                 renderItem={({ item }) => (
                   <TouchableOpacity
-                    style={[styles.chapterItem, item.id === currentChapterId && styles.activeItem]}
+                    style={[styles.chapterItem, item?.chapter_api_data === currentChapterId && styles.activeItem]}
                     onPress={() => {
                       setModalVisible(false)
                       router.replace({
                         pathname: `/reader/[id]`,
-                        params: { id: item.id, mangaId: mangaId }
+                        params: { id: item.chapter_api_data, mangaId }
                       })
                     }}
                   >
-                    <Text style={styles.chapterText}>Chapter {item.attributes.chapter ?? 'Oneshot'}</Text>
-                    <Text style={styles.date}>{formatDate(item.attributes.updatedAt)}</Text>
+                    <Text style={styles.chapterText}>Chapter {item.chapter_name ?? 'Oneshot'}</Text>
                   </TouchableOpacity>
                 )}
-                onEndReached={() => {
-                  if (hasNextPage && !isFetchingNextPage) fetchNextPage()
-                }}
-                onEndReachedThreshold={0.3}
-                ListFooterComponent={
-                  isFetchingNextPage ? (
-                    <ActivityIndicator size='small' color='#60a5fa' style={{ marginVertical: 12 }} />
-                  ) : null
-                }
+                // ListFooterComponent={
+                //   <ActivityIndicator size='small' color='#60a5fa' style={{ marginVertical: 12 }} />
+                // }
               />
             )}
           </View>
@@ -221,25 +146,5 @@ const styles = StyleSheet.create({
   date: {
     color: '#9ca3af',
     fontSize: 12
-  },
-  filterRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 12
-  },
-  filterButton: {
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-    borderWidth: 1,
-    borderColor: '#666',
-    borderRadius: 6
-  },
-  filterButtonActive: {
-    backgroundColor: '#15803d',
-    borderColor: '#15803d'
-  },
-  filterText: {
-    color: '#fff',
-    fontWeight: '600'
   }
 })

@@ -86,7 +86,7 @@ export function useInfiniteKeywordList({ keyword: keyword, limit = 20 }: SearchR
   return useInfiniteQuery({
     queryKey: ['get-list-by-keyword', keyword],
     queryFn: ({ pageParam }) => fetchListByKeyword(pageParam, keyword, limit),
-    getNextPageParam: (lastPage) => {
+    getNextPageParam: lastPage => {
       const pagination = lastPage.data.params.pagination
       if (pagination.currentPage < pagination.pageRanges) {
         return pagination.currentPage + 1

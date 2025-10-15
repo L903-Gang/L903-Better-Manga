@@ -4,12 +4,8 @@ import { otruyen } from '@/utils/env'
 import { queryOptions } from '@tanstack/react-query'
 import { Category } from './common/type'
 
-type Item = {
-  data: Category[]
-}
-
 export interface ItemsResponseData extends BaseData {
-  items: Item[]
+  items: Category[]
 }
 
 export const getCategory = () => {
