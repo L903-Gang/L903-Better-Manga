@@ -1,28 +1,23 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Alert,
-  ActivityIndicator,
-  FlatList,
-  RefreshControl
-} from 'react-native'
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native'
 import { useAuth } from '@/context/auth-provider'
 import { useRouter } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { getBookmarks } from '@/api/otruyen/bookmark/bookmark'
-import MangaBookmarkItem from '@/components/bookmark/manga-bookmark-item'
+import BookmarkList from '@/components/profile/bookmark-list'
+import { getReadHistory, ReadHistory } from '@/hooks/use-read-history'
+import ReadHistoryList from '@/components/profile/read-history-list'
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuth()
   const router = useRouter()
-
+  const [readHistory, setReadHistory] = useState<ReadHistory[]>([])
   const [loading, setLoading] = useState(false)
   const [bookmarks, setBookmarks] = useState<any[]>([])
-  const [fetching, setFetching] = useState(true)
+  const [fetching, setFetching] = useState(true) // bookmark loading
+  const [fetchingHistory, setFetchingHistory] = useState(true) // history loading
   const [refreshing, setRefreshing] = useState(false)
+  const [activeTab, setActiveTab] = useState<'bookmarks' | 'history'>('bookmarks')
 
   const handleSignOut = async () => {
     try {
@@ -53,11 +48,15 @@ export default function ProfileScreen() {
     fetchBookmarks()
   }, [fetchBookmarks])
 
-  const onRefresh = async () => {
-    setRefreshing(true)
-    await fetchBookmarks()
-    setRefreshing(false)
-  }
+  useEffect(() => {
+    const loadHistory = async () => {
+      setFetchingHistory(true)
+      const data = await getReadHistory()
+      setReadHistory(data)
+      setFetchingHistory(false)
+    }
+    loadHistory()
+  }, [])
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -74,53 +73,64 @@ export default function ProfileScreen() {
           onPress={handleSignOut}
           disabled={loading}
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Đăng xuất</Text>
-          )}
+          {loading ? <ActivityIndicator color='#fff' /> : <Text style={styles.buttonText}>Đăng xuất</Text>}
         </TouchableOpacity>
 
-        <Text style={styles.sectionTitle}>Danh sách yêu thích</Text>
+        {/* Tabs */}
+        <View style={styles.tabContainer}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'bookmarks' && styles.tabActiveLeft]}
+            onPress={() => setActiveTab('bookmarks')}
+          >
+            <Text style={[styles.tabText, activeTab === 'bookmarks' && styles.tabTextActive]}>Yêu thích</Text>
+          </TouchableOpacity>
 
-        {fetching ? (
-          <ActivityIndicator color="#fff" style={{ marginTop: 20 }} />
-        ) : (
-          <FlatList
-            data={bookmarks}
-            keyExtractor={(item) => item.slug}
-            renderItem={({ item }) => (
-              <MangaBookmarkItem
-                slug={item.slug}
-                name={item.name}
-                image={item.image}
-              />
-            )}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                tintColor="#fff"
-                colors={['#60a5fa']}
-                progressBackgroundColor="#1e293b"
-                // progressViewOffset={-1002}
-              />
-            }
-            contentContainerStyle={{
-              paddingBottom: 24,
-              flexGrow: 1,
-            }}
-            ListEmptyComponent={
-              <Text style={styles.emptyText}>
-                Bạn chưa có truyện yêu thích nào.
-              </Text>
-            }
-          />
-        )}
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'history' && styles.tabActiveRight]}
+            onPress={() => setActiveTab('history')}
+          >
+            <Text style={[styles.tabText, activeTab === 'history' && styles.tabTextActive]}>Đã đọc</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ paddingBottom: 32 }}>
+          {activeTab === 'bookmarks' && (
+            <BookmarkList
+              bookmarks={bookmarks}
+              fetching={fetching}
+              refreshing={refreshing}
+              onRefresh={async () => {
+                setRefreshing(true)
+                await fetchBookmarks()
+                setRefreshing(false)
+              }}
+              onRefetch={fetchBookmarks}
+            />
+          )}
+
+          {activeTab === 'history' && (
+            <ReadHistoryList
+              history={readHistory}
+              fetching={fetchingHistory}
+              onReadContinue={item => {
+                router.push({
+                  pathname: `/reader/[id]`,
+                  params: {
+                    id: item?.chapterApi!,
+                    slug: item.slug,
+                    chapter_name: item?.chapterName ?? 'Không rõ'
+                  }
+                })
+              }}
+              onViewInfo={item => {
+                router.push(`/manga-detail/${item.slug}`)
+              }}
+            />
+          )}
+        </View>
       </View>
     </SafeAreaView>
   )
-
 }
 
 const styles = StyleSheet.create({
@@ -165,15 +175,34 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600'
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#f1f5f9',
-    marginBottom: 12
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    backgroundColor: '#1e293b',
+    borderRadius: 8,
+    marginBottom: 16
   },
-  emptyText: {
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginTop: 12
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center'
+  },
+  tabActiveLeft: {
+    backgroundColor: '#3b82f6',
+    borderTopLeftRadius: 8,
+    borderBottomLeftRadius: 8
+  },
+  tabActiveRight: {
+    backgroundColor: '#3b82f6',
+    borderTopRightRadius: 8,
+    borderBottomRightRadius: 8
+  },
+  tabText: {
+    color: '#cbd5e1',
+    fontSize: 16
+  },
+  tabTextActive: {
+    color: '#fff',
+    fontWeight: '600'
   }
 })

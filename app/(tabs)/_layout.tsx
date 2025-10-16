@@ -51,17 +51,9 @@ export default function TabLayout() {
         name='user'
         options={{
           title: 'Cá nhân',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='person.circle' color={color} />
+          tabBarIcon: ({ color }) => <MaterialCommunityIcons size={28} name='account' color={color} />
         }}
       />
-
-      {/* <Tabs.Screen 
-        name='profile'
-        options={{
-          title: 'Tài khoản',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name='person.fill' color={color} />
-        }}
-      /> */}
     </Tabs>
   )
 }

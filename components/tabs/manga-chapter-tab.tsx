@@ -102,7 +102,7 @@ const MangaChaptersList: React.FC<MangaChaptersListProps> = ({ chapters, slug })
             onPress={() =>
               router.push({
                 pathname: `/reader/[id]`,
-                params: { id: item?.chapter_api_data, slug: slug }
+                params: { id: item?.chapter_api_data, slug: slug, chapter_name: item?.chapter_name ?? 'Không rõ' }
               })
             }
           >

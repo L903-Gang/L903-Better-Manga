@@ -9,15 +9,7 @@ async function getCurrentUser() {
   return user
 }
 
-export async function addBookmark({
-  slug,
-  name,
-  image
-}: {
-  slug: string
-  name: string
-  image?: string
-}) {
+export async function addBookmark({ slug, name, image }: { slug: string; name: string; image?: string }) {
   try {
     const user = await getCurrentUser()
 
@@ -39,11 +31,7 @@ export async function removeBookmark(slug: string) {
   try {
     const user = await getCurrentUser()
 
-    const { error } = await supabase
-      .from('bookmark')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('slug', slug)
+    const { error } = await supabase.from('bookmark').delete().eq('user_id', user.id).eq('slug', slug)
 
     if (error) throw error
     return true

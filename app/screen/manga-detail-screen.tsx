@@ -69,6 +69,7 @@ export default function MangaDetailScreen({ manga }: MangaDetailPageProps) {
           )}
         </View>
 
+        {/* Bookmark */}
         <View style={{ paddingHorizontal: 16, paddingBottom: 20 }}>
           <BookmarkButton slug={manga.item.slug} image={coverImageUrl} name={title} />
         </View>
