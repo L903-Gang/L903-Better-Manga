@@ -1,6 +1,6 @@
-# L903 Manga
+# L903 Truyện Tranh
 
-**Phiên bản di động của L903 Manga**
+**Phiên bản di động của L903 Truyện tranh**
 
 ---
 
@@ -17,6 +17,6 @@
 
 ## Tính năng nổi bật
 
-- Không có gì, thua cả web dù web đã rất lỏ
+- Không có gì, thua cả web dù web chưa tồn tại
 
 ---
