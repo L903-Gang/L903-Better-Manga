@@ -46,7 +46,7 @@ export default function BookmarkList({
         />
       }
       contentContainerStyle={{
-        paddingBottom: 24,
+        paddingBottom: 210,
         flexGrow: 1
       }}
       ListEmptyComponent={<Text style={styles.emptyText}>Bạn chưa có truyện yêu thích nào.</Text>}

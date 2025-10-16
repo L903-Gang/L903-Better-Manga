@@ -44,18 +44,19 @@ export default function ProfileScreen() {
     }
   }, [])
 
+  const fetchHistory = async () => {
+    setFetchingHistory(true)
+    const data = await getReadHistory()
+    setReadHistory(data)
+    setFetchingHistory(false)
+  }
+
   useEffect(() => {
     fetchBookmarks()
   }, [fetchBookmarks])
 
   useEffect(() => {
-    const loadHistory = async () => {
-      setFetchingHistory(true)
-      const data = await getReadHistory()
-      setReadHistory(data)
-      setFetchingHistory(false)
-    }
-    loadHistory()
+    fetchHistory()
   }, [])
 
   return (
@@ -111,7 +112,14 @@ export default function ProfileScreen() {
           {activeTab === 'history' && (
             <ReadHistoryList
               history={readHistory}
+              refreshing={refreshing}
               fetching={fetchingHistory}
+              onRefetch={fetchHistory}
+              onRefresh={async () => {
+                setFetchingHistory(true)
+                await fetchHistory()
+                setFetchingHistory(false)
+              }}
               onReadContinue={item => {
                 router.push({
                   pathname: `/reader/[id]`,
