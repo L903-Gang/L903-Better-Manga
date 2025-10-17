@@ -36,8 +36,8 @@ const MangaItemSlider: React.FC<SlideMangaListProps> = ({
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: `/tag/[id]`,
-                params: { id: type }
+                pathname: `/list/[type]`,
+                params: { type: type, title: title }
               })
             }}
           >

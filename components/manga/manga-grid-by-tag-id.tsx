@@ -28,7 +28,7 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, type, page = 1 }) =
 
   let data = mangas?.data?.items ? [...mangas?.data?.items] : []
 
-  // Nếu số item lẻ → thêm placeholder nhìn cho đỡ bẩn mắt
+  // Nếu số item lẻ thêm placeholder nhìn cho đỡ bẩn mắt
   if (data.length % 2 !== 0) {
     data.push({ slug: 'placeholder' } as any)
   }
@@ -42,8 +42,8 @@ const MangaGridByTagId: React.FC<MangaGridProps> = ({ title, type, page = 1 }) =
           <TouchableOpacity
             onPress={() => {
               router.push({
-                pathname: `/tag/[id]`,
-                params: { id: type }
+                pathname: `/list/[type]`,
+                params: { type: type, title: title }
               })
             }}
           >

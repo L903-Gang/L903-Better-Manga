@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { View, FlatList, ActivityIndicator, Text, StyleSheet, TouchableOpacity, BackHandler } from 'react-native'
+import { View, FlatList, ActivityIndicator, Text, StyleSheet, TouchableOpacity, BackHandler, RefreshControl } from 'react-native'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { request } from '@/utils/request'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -38,7 +38,7 @@ export default function FilterMangaScreen() {
   }, [showFilter, navigation])
 
   // Infinite Query
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error } = useInfiniteQuery({
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error, refetch, isRefetching } = useInfiniteQuery({
     queryKey: ['get-list-by-category', selectedTags],
     queryFn: ({ pageParam = 1 }) =>
       request<ItemsResponseData>(
@@ -121,6 +121,15 @@ export default function FilterMangaScreen() {
             data={displayedMangas}
             keyExtractor={item => item._id?.toString()}
             numColumns={2}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefetching}
+                onRefresh={refetch}
+                tintColor='#fff'
+                colors={['#60a5fa']}
+                progressBackgroundColor='#1e293b'
+              />
+            }
             columnWrapperStyle={displayedMangas.length > 0 ? styles.row : undefined}
             renderItem={({ item }) => {
               if (item._id === 'placeholder') {

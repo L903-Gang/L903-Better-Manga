@@ -61,6 +61,15 @@ export default function RootLayout() {
                   headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
                 }}
               />
+              <Stack.Screen
+                name='list/[type]'
+                options={{
+                  headerTitle: 'Danh sách truyện',
+                  headerStyle: { backgroundColor: '#192d5aff' },
+                  headerTintColor: '#fff', // màu icon back
+                  headerTitleStyle: { fontWeight: 'bold', fontSize: 18 }
+                }}
+              />
             </Stack>
             <StatusBar style='auto' />
           </View>
