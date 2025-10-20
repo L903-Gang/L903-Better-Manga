@@ -13,7 +13,7 @@ export default function ReadHistoryList({
   onRefetch
 }: {
   history: ReadHistory[]
-  fetching: boolean,
+  fetching: boolean
   refreshing: boolean
   onReadContinue: (item: ReadHistory) => void
   onViewInfo: (item: ReadHistory) => void
@@ -26,7 +26,7 @@ export default function ReadHistoryList({
 
   return (
     <FlatList
-      data={history}
+      data={history.filter(item => !!item.chapterApi)}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

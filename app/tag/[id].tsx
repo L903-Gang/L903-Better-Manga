@@ -1,5 +1,14 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { View, FlatList, ActivityIndicator, Text, StyleSheet, TouchableOpacity, BackHandler, RefreshControl } from 'react-native'
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  BackHandler,
+  RefreshControl
+} from 'react-native'
 import { useInfiniteQuery } from '@tanstack/react-query'
 import { request } from '@/utils/request'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -38,24 +47,25 @@ export default function FilterMangaScreen() {
   }, [showFilter, navigation])
 
   // Infinite Query
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error, refetch, isRefetching } = useInfiniteQuery({
-    queryKey: ['get-list-by-category', selectedTags],
-    queryFn: ({ pageParam = 1 }) =>
-      request<ItemsResponseData>(
-        `v1/api/the-loai/${selectedTags}`,
-        'GET',
-        { page: pageParam },
-        {},
-        // import sẵn: otruyen
-        otruyen
-      ),
-    initialPageParam: 1,
-    getNextPageParam: (lastPage, allPages) => {
-      const totalPages = lastPage.data?.params?.pagination?.pageRanges ?? 1
-      const currentPage = lastPage.data?.params?.pagination?.currentPage ?? 1
-      return currentPage < totalPages ? currentPage + 1 : undefined
-    }
-  })
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isError, error, refetch, isRefetching } =
+    useInfiniteQuery({
+      queryKey: ['get-list-by-category', selectedTags],
+      queryFn: ({ pageParam = 1 }) =>
+        request<ItemsResponseData>(
+          `v1/api/the-loai/${selectedTags}`,
+          'GET',
+          { page: pageParam },
+          {},
+          // import sẵn: otruyen
+          otruyen
+        ),
+      initialPageParam: 1,
+      getNextPageParam: (lastPage, allPages) => {
+        const totalPages = lastPage.data?.params?.pagination?.pageRanges ?? 1
+        const currentPage = lastPage.data?.params?.pagination?.currentPage ?? 1
+        return currentPage < totalPages ? currentPage + 1 : undefined
+      }
+    })
 
   // Gộp list từ các page
   const mangas = useMemo(() => {

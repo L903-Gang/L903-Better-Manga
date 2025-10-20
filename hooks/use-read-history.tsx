@@ -15,7 +15,12 @@ export interface ReadHistory {
 export const getReadHistory = async (): Promise<ReadHistory[]> => {
   try {
     const json = await AsyncStorage.getItem(STORAGE_KEY)
-    return json ? JSON.parse(json) : []
+    const data: ReadHistory[] = json ? JSON.parse(json) : []
+
+    // Sort theo thời gian giảm dần (mới nhất trước)
+    const sorted = data.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+
+    return sorted
   } catch (e) {
     console.error('Lỗi khi đọc lịch sử:', e)
     return []

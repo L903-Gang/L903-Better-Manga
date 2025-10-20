@@ -9,7 +9,7 @@ import Loading from '../status/loading'
 
 interface ChapterNavigatorProps {
   mangaId: string
-  currentChapterId: string
+  currentChapterId: string // chapter_api_data, tại lười đổi tên :v
 }
 
 const ChapterNavigator: React.FC<ChapterNavigatorProps> = ({ mangaId, currentChapterId }) => {
@@ -81,7 +81,7 @@ const ChapterNavigator: React.FC<ChapterNavigatorProps> = ({ mangaId, currentCha
                       setModalVisible(false)
                       router.replace({
                         pathname: `/reader/[id]`,
-                        params: { id: item.chapter_api_data, mangaId }
+                        params: { id: item.chapter_api_data, slug: mangaId }
                       })
                     }}
                   >

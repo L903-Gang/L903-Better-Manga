@@ -20,7 +20,7 @@ import { fetchChapterData } from '@/api/otruyen/chapter/get-detail-chapter'
 const { width } = Dimensions.get('window')
 
 interface ChapterReaderScreenProps {
-  chapterId: string
+  chapterId: string // chapter_api_data, tại lười đổi tên :v
   slug: string
 }
 
