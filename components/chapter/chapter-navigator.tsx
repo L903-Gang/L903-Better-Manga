@@ -1,8 +1,8 @@
-import React, { useState, useMemo } from 'react'
-import { View, Text, TouchableOpacity, StyleSheet, Modal, FlatList } from 'react-native'
-import { useQuery } from '@tanstack/react-query'
 import { getDetailManga } from '@/api/otruyen/get-detail-manga'
+import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
+import React, { useMemo, useState } from 'react'
+import { FlatList, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import Ionicons from 'react-native-vector-icons/Ionicons'
 import Error from '../status/error'
 import Loading from '../status/loading'
@@ -31,7 +31,7 @@ const ChapterNavigator: React.FC<ChapterNavigatorProps> = ({ mangaId, currentCha
     if (!chapter) return
     router.replace({
       pathname: `/reader/[id]`,
-      params: { id: chapter.chapter_api_data, slug: mangaId }
+      params: { id: chapter.chapter_api_data, slug: mangaId, chapter_name: chapter.chapter_name }
     })
   }
 

@@ -9,13 +9,30 @@ async function getCurrentUser() {
   return user
 }
 
-export async function addBookmark({ slug, name, image }: { slug: string; name: string; image?: string }) {
+type AddBookmarkParams = {
+  slug: string
+  name: string
+  image?: string
+  chapter_name?: string
+  chapter_id?: string
+}
+
+export async function addBookmark({ slug, name, image, chapter_name, chapter_id }: AddBookmarkParams) {
   try {
     const user = await getCurrentUser()
 
     const { data, error } = await supabase
       .from('bookmark')
-      .insert([{ user_id: user.id, slug, name, image }])
+      .insert([
+        {
+          user_id: user.id,
+          slug,
+          name,
+          image,
+          chapter_name,
+          chapter_id
+        }
+      ])
       .select()
       .single()
 
@@ -84,6 +101,31 @@ export async function isBookmarked(slug: string) {
     return !!data
   } catch (err: any) {
     console.error('Lỗi isBookmarked:', err)
+    throw err
+  }
+}
+
+// chapter_name + chapter_url
+export async function updateBookmarkChapter(slug: string, chapter_name: string, chapter_url: string) {
+  try {
+    const user = await getCurrentUser()
+
+    // Cập nhật đúng tên cột mới là chapter_url
+    const { data, error } = await supabase
+      .from('bookmark')
+      .update({
+        chapter_name: chapter_name,
+        chapter_url: chapter_url
+      })
+      .eq('user_id', user.id)
+      .eq('slug', slug)
+      .select()
+      .single()
+
+    if (error) throw error
+    return data
+  } catch (err: any) {
+    console.error('Lỗi updateBookmarkChapter:', err)
     throw err
   }
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Text, FlatList, RefreshControl, ActivityIndicator, StyleSheet } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native'
 import MangaBookmarkItem from '../bookmark/manga-bookmark-item'
 
 export default function BookmarkList({
@@ -32,7 +32,14 @@ export default function BookmarkList({
         }
         return (
           <View style={styles.gridItem}>
-            <MangaBookmarkItem slug={item.slug} name={item.name} image={item.image} onRefetch={onRefetch} />
+            <MangaBookmarkItem
+              slug={item.slug}
+              name={item.name}
+              image={item.image}
+              chapter_name={item.chapter_name}
+              chapter_url={item.chapter_url}
+              onRefetch={onRefetch}
+            />
           </View>
         )
       }}

@@ -1,26 +1,51 @@
-import React, { useState } from 'react'
-import { View, Text, Image, TouchableOpacity, ActivityIndicator, StyleSheet, Modal } from 'react-native'
-import { useRouter } from 'expo-router'
 import { removeBookmark } from '@/api/otruyen/bookmark/bookmark'
+import { useRouter } from 'expo-router'
+import React, { useState } from 'react'
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 interface BookmarkItemProps {
   slug: string
   name: string
   image?: string
+  chapter_name?: string
+  chapter_url?: string
   onRefetch?: () => void // callback refetch sau khi xóa
 }
 
-const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onRefetch }) => {
+const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({
+  slug,
+  name,
+  image,
+  chapter_name,
+  chapter_url,
+  onRefetch
+}) => {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
-  const [showModal, setShowModal] = useState(false)
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [showActionModal, setShowActionModal] = useState(false)
   const [removing, setRemoving] = useState(false)
 
   const coverImageUrl = image?.startsWith('http') ? image : `https://img.otruyenapi.com/uploads/comics/${image}`
 
-  const handlePress = () => {
+  const handleCardPress = () => {
+    setShowActionModal(true)
+  }
+  const handleViewInfo = () => {
+    setShowActionModal(false)
     if (slug.trim()) {
       router.push(`/manga-detail/${slug}`)
+    }
+  }
+
+  const handleContinue = () => {
+    setShowActionModal(false)
+    if (chapter_url) {
+      router.push({
+        pathname: `/reader/[id]`,
+        params: { id: chapter_url, slug: slug, chapter_name: chapter_name }
+      })
     }
   }
 
@@ -28,7 +53,7 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
     try {
       setRemoving(true)
       await removeBookmark(slug)
-      setShowModal(false)
+      setShowDeleteModal(false)
       onRefetch?.() // gọi refetch lại danh sách
     } catch (error) {
       console.error('Lỗi khi xóa bookmark:', error)
@@ -39,7 +64,7 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity onPress={handlePress} activeOpacity={0.8}>
+      <TouchableOpacity onPress={handleCardPress} activeOpacity={0.8}>
         <View style={[styles.imageWrapper, styles.imageLarge]}>
           {loading && (
             <View style={styles.loadingOverlay}>
@@ -48,7 +73,7 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
           )}
           <Image
             source={{
-              uri: coverImageUrl || '@/assets/images/xin-loi-ouguri-cap-cua-toi-an-het-anh-roi.jpg'
+              uri: coverImageUrl || 'https://via.placeholder.com/200x300.png?text=No+Image'
             }}
             style={styles.image}
             resizeMode='cover'
@@ -56,7 +81,7 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
             onLoadEnd={() => setLoading(false)}
           />
 
-          <TouchableOpacity style={styles.removeButton} onPress={() => setShowModal(true)}>
+          <TouchableOpacity style={styles.removeButton} onPress={() => setShowDeleteModal(true)}>
             <Text style={styles.removeText}>×</Text>
           </TouchableOpacity>
         </View>
@@ -68,12 +93,40 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
         </View>
       </TouchableOpacity>
 
+      {/* Coi thông tin */}
       <Modal
-        visible={showModal}
+        transparent
+        visible={showActionModal}
+        animationType='fade'
+        onRequestClose={() => setShowActionModal(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowActionModal(false)}>
+          <View style={[styles.actionModal, { paddingTop: 20 }]}>
+            <Text style={styles.modalTitleAction}>{name}</Text>
+
+            <TouchableOpacity
+              style={[styles.actionButton, !chapter_url && { backgroundColor: '#475569', opacity: 0.6 }]}
+              disabled={!chapter_url}
+              onPress={handleContinue}
+            >
+              <Text style={styles.actionButtonText}>
+                {chapter_url && chapter_name ? `Chapter ${chapter_name}` : 'Chưa có lịch sử đọc'}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.actionButton} onPress={handleViewInfo}>
+              <Text style={styles.actionButtonText}>Xem thông tin</Text>
+            </TouchableOpacity>
+          </View>
+        </Pressable>
+      </Modal>
+
+      <Modal
+        visible={showDeleteModal}
         transparent
         animationType='fade'
-        onRequestClose={() => setShowModal(false)}
-        onDismiss={() => setShowModal(false)}
+        onRequestClose={() => setShowDeleteModal(false)}
+        onDismiss={() => setShowDeleteModal(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalBox}>
@@ -83,7 +136,7 @@ const MangaBookmarkItem: React.FC<BookmarkItemProps> = ({ slug, name, image, onR
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.modalButton, styles.cancelButton]}
-                onPress={() => setShowModal(false)}
+                onPress={() => setShowDeleteModal(false)}
                 disabled={removing}
                 activeOpacity={0.7}
               >
@@ -121,19 +174,12 @@ const styles = StyleSheet.create({
     height: 290,
     width: 'auto'
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#f8fafc',
-    textAlign: 'center',
-    marginBottom: 8
-  },
   imageWrapper: {
     position: 'relative'
   },
   imageLarge: {
     width: '100%',
-    height: 230,
+    height: 220,
     maxWidth: 200,
     alignSelf: 'center'
   },
@@ -160,8 +206,12 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4
   },
+  chapterText: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginTop: 4
+  },
 
-  // Nút X
   removeButton: {
     position: 'absolute',
     top: 8,
@@ -181,18 +231,25 @@ const styles = StyleSheet.create({
     marginTop: -2
   },
 
-  // Modal
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center'
   },
+
   modalBox: {
     backgroundColor: '#1e293b',
     padding: 20,
     borderRadius: 12,
     width: '80%'
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#f8fafc',
+    textAlign: 'center',
+    marginBottom: 8
   },
   modalText: {
     color: '#fff',
@@ -217,6 +274,32 @@ const styles = StyleSheet.create({
   },
   modalButtonText: {
     color: '#fff',
-    fontWeight: '600'
+    fontWeight: '600',
+    textAlign: 'center'
+  },
+
+  actionModal: {
+    width: '80%',
+    backgroundColor: '#0f172a',
+    borderRadius: 12,
+    padding: 20
+  },
+  modalTitleAction: {
+    color: '#f8fafc',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 16,
+    textAlign: 'center'
+  },
+  actionButton: {
+    backgroundColor: '#334155',
+    borderRadius: 8,
+    paddingVertical: 12,
+    marginTop: 8
+  },
+  actionButtonText: {
+    textAlign: 'center',
+    color: '#f1f5f9',
+    fontSize: 16
   }
 })
